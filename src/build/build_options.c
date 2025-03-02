@@ -7,6 +7,9 @@
 #include "project.h"
 #include "build_internal.h"
 #include "git_hash.h"
+#include <sys/types.h>
+#include <dirent.h>
+
 
 extern int llvm_version_major;
 bool silence_deprecation;
@@ -195,6 +198,9 @@ static void usage(bool full)
 		PRINTF("");
 		PRINTF("  --linux-crt <dir>          - Set the directory to use for finding crt1.o and related files.");
 		PRINTF("  --linux-crtbegin <dir>     - Set the directory to use for finding crtbegin.o and related files.");
+		PRINTF("");
+		PRINTF("  --android-ndk <dir>        - Set the NDK directory location.");
+		PRINTF("  --android-api <dir>        - Set Android API version.");
 		PRINTF("");
 		PRINTF("  --vector-conv=<option>     - Set vector conversion behaviour: default, old.");
 		PRINTF("  --sanitize=<option>        - Enable sanitizer: address, memory, thread.");
@@ -1237,6 +1243,18 @@ static void parse_option(BuildOptions *options)
 				options->linuxpaths.crtbegin = check_dir(next_arg());
 				return;
 			}
+			if (match_longopt("android-ndk"))
+			{
+				if (at_end() || next_is_opt()) error_exit("error: android-ndk needs a directory.");
+				options->android.ndk_path = check_dir(next_arg());
+				return;
+			}
+			if (match_longopt("android-api"))
+			{
+				if (at_end() || next_is_opt()) error_exit("error: android-api needs a version.");
+				options->android.api_verion = atoi(next_arg());
+				return;
+			}
 			if (match_longopt("benchmarking"))
 			{
 				options->benchmarking = true;
@@ -1360,6 +1378,23 @@ BuildOptions parse_arguments(int argc, const char *argv[])
 	if (build_options.command == COMMAND_MISSING)
 	{
 		FAIL_WITH_ERR("Missing a compiler command such as 'compile' or 'build'.");
+	}
+	if (build_options.arch_os_target_override == ANDROID_AARCH64) {
+		if (build_options.android.ndk_path == NULL) {
+			const char *ndk_path = NULL;
+			ndk_path = getenv("ANDROID_NDK");
+			if (ndk_path == NULL)
+			{
+				FAIL_WITH_ERR("Can't find Android NDK!");
+			}
+
+			build_options.android.ndk_path = ndk_path;
+		}
+
+		if (build_options.android.api_verion <= 0)
+		{
+			build_options.android.api_verion = 28; // 28 = Android 9
+		}
 	}
 	debug_log = build_options.verbosity_level > 2;
 	return build_options;
@@ -1557,4 +1592,3 @@ const char *arch_os_target[ARCH_OS_TARGET_LAST + 1] = {
 		[WINDOWS_AARCH64] = "windows-aarch64",
 		[WINDOWS_X64] = "windows-x64",
 };
-

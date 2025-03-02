@@ -488,6 +488,11 @@ typedef struct BuildOptions_
 		const char *crt;
 		const char *crtbegin;
 	} linuxpaths;
+	struct
+	{
+		const char *ndk_path;
+		int api_verion;
+	} android;
 	int build_threads;
 	const char **libraries_to_fetch;
 	const char **files;

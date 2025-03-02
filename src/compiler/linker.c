@@ -681,6 +681,7 @@ Linker linker_find_linker_type(void)
 		case OS_TYPE_LINUX:
 		case OS_TYPE_NETBSD:
 		case OS_TYPE_OPENBSD:
+		case OS_TYPE_ANDROID:
 			return LINKER_LD;
 		case OS_DARWIN_TYPES:
 			return LINKER_LD64;

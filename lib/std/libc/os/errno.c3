@@ -21,8 +21,12 @@ macro void errno_set(int err) @if(env::WIN32) => _set_errno(err);
 extern fn void _get_errno(int* result) @if(env::WIN32);
 extern fn void _set_errno(int err) @if(env::WIN32);
 
+// Android
+macro int errno() @if(env::ANDROID) {return 0;} // TODO: Implement this!
+macro void errno_set(int err) @if(env::ANDROID) {} // TODO: Implement this!
+
 // Default
-const ERRNO_DEFAULT @local = !env::LINUX && !env::DARWIN && !env::WIN32;
+const ERRNO_DEFAULT @local = !env::LINUX && !env::DARWIN && !env::WIN32 && !env::ANDROID;
 tlocal int _errno_c3 @if(ERRNO_DEFAULT) = 0;
 fn void errno_set(int err) @if(ERRNO_DEFAULT) => _errno_c3 = err;
 fn int errno() @if(ERRNO_DEFAULT) => _errno_c3;

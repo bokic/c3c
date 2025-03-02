@@ -126,6 +126,7 @@ static bool os_target_use_thread_local(OsType os)
 		case OS_TYPE_OPENBSD:
 		case OS_TYPE_WIN32:
 		case OS_TYPE_WASI:
+		case OS_TYPE_ANDROID:
 			return true;
 	}
 	UNREACHABLE
@@ -1091,7 +1092,7 @@ static char *arch_to_target_triple[ARCH_OS_TARGET_LAST + 1] = {
 		[FREEBSD_X64] = "x86_64-pc-freebsd",
 		[OPENBSD_X64] = "x86_64-pc-openbsd",
 		[ELF_X64] = "x86_64-unknown-elf",
-		[ANDROID_AARCH64] = "aarch64-unknown-linux-android",
+		[ANDROID_AARCH64] = "aarch64-unknown-android",
 		[LINUX_AARCH64] = "aarch64-unknown-linux-gnu",
 		[IOS_AARCH64] = "aarch64-apple-ios",
 		[MACOS_AARCH64] = "aarch64-apple-macosx",
@@ -1300,6 +1301,7 @@ static OsType os_from_llvm_string(StringSlice os_string)
 	STRCASE("wasi", OS_TYPE_WASI)
 	STRCASE("emscripten", OS_TYPE_EMSCRIPTEN)
 	STRCASE("elf", OS_TYPE_NONE)
+	STRCASE("android", OS_TYPE_ANDROID)
 	return OS_TYPE_UNKNOWN;
 #undef STRCASE
 }
@@ -1468,6 +1470,7 @@ static ObjectFormatType object_format_from_os(OsType os, ArchType arch_type)
 		case OS_TYPE_NETBSD:
 		case OS_TYPE_OPENBSD:
 		case OS_TYPE_FREE_BSD:
+		case OS_TYPE_ANDROID:
 			return OBJ_FORMAT_ELF;
 		case OS_DARWIN_TYPES:
 			return OBJ_FORMAT_MACHO;
@@ -1525,6 +1528,7 @@ static unsigned os_target_c_type_bits(OsType os, ArchType arch, CType type)
 		case OS_TYPE_NETBSD:
 		case OS_TYPE_OPENBSD:
 		case OS_TYPE_WASI:
+		case OS_TYPE_ANDROID:
 			// Use default
 			break;
 		case OS_TYPE_WIN32:
@@ -1697,6 +1701,7 @@ static RelocModel arch_os_reloc_default(ArchType arch, OsType os, EnvironmentTyp
 				if (arch == ARCH_TYPE_X86) return RELOC_NONE;
 				return RELOC_BIG_PIC;
 			case OS_TYPE_LINUX:
+			case OS_TYPE_ANDROID:
 				return RELOC_BIG_PIC;
 			case OS_TYPE_WASI:
 				return RELOC_NONE;
@@ -1737,6 +1742,7 @@ static RelocModel arch_os_reloc_default(ArchType arch, OsType os, EnvironmentTyp
 		case OS_TYPE_WASI:
 			return RELOC_NONE;
 		case OS_TYPE_LINUX:
+		case OS_TYPE_ANDROID:
 			return RELOC_BIG_PIE;
 		case OS_TYPE_OPENBSD:
 			return RELOC_SMALL_PIE;
@@ -1761,6 +1767,7 @@ static bool arch_os_pic_default_forced(ArchType arch, OsType os)
 		case OS_TYPE_LINUX:
 		case OS_TYPE_NETBSD:
 		case OS_TYPE_OPENBSD:
+		case OS_TYPE_ANDROID:
 			return false;
 		case OS_UNSUPPORTED:
 			UNREACHABLE
